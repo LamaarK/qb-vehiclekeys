@@ -38,5 +38,56 @@ Add item info to qb-inventory\html\js\app.js in function FormatItemInfo
         } else if (itemData.name == "vehiclekey") {
             $(".item-info-title").html('<p>' + itemData.info.model + '</p>');
             $(".item-info-description").html('<p>Plate : ' + itemData.info.plate + '</p>');
+	    
+	    Add call event for keys in qb-vehicleshop/client.lua and comment SetOwner call
 
+	RegisterNetEvent('qb-vehicleshop:client:buyShowroomVehicle', function(vehicle, plate)
+    		tempShop = insideShop -- temp hacky way of setting the shop because it changes after the callback has returned since you are outside the zone
+   		 QBCore.Functions.TriggerCallback('QBCore:Server:SpawnVehicle', function(netId)
+      			 local veh = NetToVeh(netId)
+        		 exports['LegacyFuel']:SetFuel(veh, 100)
+                         SetVehicleNumberPlateText(veh, plate)
+                         SetEntityHeading(veh, Config.Shops[tempShop]["VehicleSpawn"].w)
+                   --TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))                                                  --Change comment
+        		 TriggerServerEvent("qb-vehicletuning:server:SaveVehicleProps", QBCore.Functions.GetVehicleProperties(veh))
+        		 Wait(100)                                                                                                                --ChangeAdd
+        		 TriggerServerEvent('qb-vehiclekeys:server:BuyVehicle', plate, GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(veh)))) --Change Add
+    		end, vehicle, Config.Shops[tempShop]["VehicleSpawn"], true)
+	     end)
+	     
+Comment SetOwner call in your garage script, here in qb-garage/client/main.lua
+
+	RegisterNetEvent('qb-garages:client:takeOutGarage', function(data)
+    local type = data.type
+    local vehicle = data.vehicle
+    local garage = data.garage
+    local index = data.index
+    QBCore.Functions.TriggerCallback('qb-garage:server:IsSpawnOk', function(spawn)
+        if spawn then
+            local location
+            if type == "house" then
+                location = garage.takeVehicle
+            else
+                location = garage.spawnPoint
+            end
+            QBCore.Functions.TriggerCallback('qb-garage:server:spawnvehicle', function(netId, properties)
+                local veh = NetToVeh(netId)
+                QBCore.Functions.SetVehicleProperties(veh, properties)
+                exports['LegacyFuel']:SetFuel(veh, vehicle.fuel)
+                doCarDamage(veh, vehicle)
+                TriggerServerEvent('qb-garage:server:updateVehicleState', 0, vehicle.plate, index)
+                closeMenuFull()
+                --TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))                   --Change comment
+                SetVehicleEngineOn(veh, true, true)
+                if type == "house" then
+                    exports['qb-core']:DrawText(Lang:t("info.park_e"), 'left')
+                    InputOut = false
+                    InputIn = true
+                end
+            end, vehicle, location, true)
+        else
+            QBCore.Functions.Notify(Lang:t("error.not_impound"), "error", 5000)
+        end
+    end, vehicle.plate, type)
+end)
 
