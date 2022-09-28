@@ -1,9 +1,6 @@
 # qb-sna-vehiclekeys
 Vehicle keys as items
 
-## Support
-Please join my discord : https://discord.gg/kvSwVzD8Rd
-
 ## Features
 - The key is created with the vehicle plate and model in item description
 - Keys are given at car buy (events available)
