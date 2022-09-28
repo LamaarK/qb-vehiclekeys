@@ -1,4 +1,4 @@
-# qb-sna-vehiclekeys
+# qb-sna-vehiclekeys BIG THANKS TO https://github.com/Sna-aaa/qb-sna-vehiclekeys
 Vehicle keys as items
 
 ## Features
